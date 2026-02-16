@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>VibeChat</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+    <audio id="sound-thock" src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3"></audio>
+    <audio id="sound-notify" src="https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3"></audio>
+
+    <div id="auth-screen" class="active-screen">
+        <div class="glass-panel">
+            <h1 style="margin-bottom: 5px;">VibeChat</h1>
+            <p style="color:var(--text-secondary); margin-bottom: 30px;">Enter the Starstream</p>
+            
+            <input type="email" id="email" class="glass-input" placeholder="Email">
+            <input type="password" id="password" class="glass-input" placeholder="Password">
+            <input type="text" id="username" class="glass-input" placeholder="Username (Sign Up only)">
+            
+            <button onclick="handleSignIn()" class="primary-btn">Sign In</button>
+            <button onclick="handleSignUp()" class="primary-btn" style="background:transparent; color:white; border:1px solid rgba(255,255,255,0.2)">Create Account</button>
+            <p id="auth-msg" style="margin-top:15px; font-size: 14px; color: #ff4d4d;"></p>
+        </div>
+    </div>
+
+    <div id="home-screen" class="hidden">
+        <header class="app-header">
+            <div style="display:flex; align-items:center; gap:10px;" onclick="toggleScreen('settings-screen')">
+                <img id="my-avatar" class="avatar" src="">
+                <h3 id="my-username">...</h3>
+            </div>
+            <div style="display:flex; gap:15px;">
+                <button onclick="openGroupModal()" style="background:none; border:none; color:white; font-size:1.2rem; cursor:pointer;">✚</button>
+                <svg onclick="handleLogout()" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="cursor:pointer;"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+            </div>
+        </header>
+
+        <div class="search-container">
+            <input type="text" id="search-input" class="glass-input" placeholder="Search users...">
+            <div id="search-results" class="hidden"></div>
+        </div>
+
+        <div id="chat-cascade" class="cascade-container">
+            </div>
+    </div>
+
+    <div id="chat-screen" class="hidden">
+        <header class="app-header" style="background: rgba(0,0,0,0.2);">
+            <button onclick="closeChat()" style="background:none; border:none; color:white; font-size:24px; cursor:pointer;">←</button>
+            <div style="display:flex; align-items:center; gap:10px; margin-left:15px;">
+                <img id="chat-header-avatar" class="avatar small" src="" style="width:30px; height:30px;">
+                <h3 id="chat-partner">User</h3>
+            </div>
+        </header>
+        
+        <div id="message-feed" class="chat-messages"></div>
+        
+        <div id="file-preview" class="hidden" style="padding: 10px 20px; font-size:0.8rem; color:var(--accent);">
+            <span id="filename-display"></span> <button onclick="cancelFile()" style="background:none; border:none; color:white;">×</button>
+        </div>
+
+        <div class="chat-input-bar">
+            <label for="media-upload" style="cursor:pointer; margin-right:10px; font-size:1.2rem;">📎</label>
+            <input type="file" id="media-upload" hidden onchange="handleFileSelect(this)">
+            
+            <input type="text" id="msg-input" class="glass-input" style="margin:0;" placeholder="Type a message..." autocomplete="off">
+            <button id="send-btn" onclick="sendMessage()">
+                <div class="shooting-star"></div>
+                ➤
+            </button>
+        </div>
+    </div>
+
+    <div id="settings-screen" class="hidden">
+        <header class="app-header">
+            <button onclick="toggleScreen('home-screen')" style="background:none; border:none; color:white; font-size:24px;">←</button>
+            <h2>Settings</h2>
+        </header>
+        <div class="settings-menu">
+            <div class="settings-option">
+                <span>Change Username</span>
+                <input type="text" id="edit-name" placeholder="New Name" style="background:none; border:none; color:white; text-align:right; outline:none;">
+                <button onclick="updateProfile()" style="margin-left:10px; padding:5px 10px; border-radius:8px; border:none; background:white; cursor:pointer;">Save</button>
+            </div>
+            <div class="settings-option danger-zone" onclick="deleteAccount()">
+                <span>Delete Account</span>
+                <span>🗑</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="group-modal" class="modal-overlay hidden">
+        <div class="glass-panel" style="width:90%; max-width:400px;">
+            <h3>New Group</h3>
+            <input type="text" id="group-name" class="glass-input" placeholder="Group Name">
+            <div style="margin:15px 0; max-height:200px; overflow-y:auto; border:1px solid var(--glass-border); padding:10px; border-radius:15px;">
+                <p style="font-size:0.8rem; color:#888; margin-bottom:10px;">Select Members:</p>
+                <div id="user-checklist"></div>
+            </div>
+            <div style="display:flex; gap:10px;">
+                <button onclick="closeGroupModal()" class="primary-btn" style="background:transparent; color:white; border:1px solid rgba(255,255,255,0.2)">Cancel</button>
+                <button onclick="createGroup()" class="primary-btn">Create</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
